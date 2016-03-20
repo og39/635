@@ -1,6 +1,6 @@
 <?php
 
-class workoutDB
+class DBlogin
 {
    private $db;
    private $ini;
@@ -34,7 +34,7 @@ class workoutDB
         $results = $this->db->query($query);
 	$row = $results->fetch_assoc();
 	if ($row['userID'] === $userID)
-        {		
+        {				
 		return true;
 	}       
 	return false;
@@ -103,138 +103,29 @@ class workoutDB
 	$row = $results->fetch_assoc();
 	if ($row['accType'] === 'trainer')
         {	
-		echo "trainer".PHP_EOL;
+		echo "Trainer Priviliges".PHP_EOL;
 		return 1;
 	}
-	echo "User".PHP_EOL;
+	echo "User Privileges".PHP_EOL;
         return 0;	
    }
-
-   public function createRoutine ($userID, $passwd, $routineName)
+   public function updatePassword($userID,$oldpasswd,$newpasswd)
    {
-      if ($this->validateUser($userID, $passwd)== false)
-      {
-	echo "invalid login".PHP_EOL;
-	return;
-      }
-      
-      if ($this ->checkUserPrivilegeLevel($userID)<1)
-      {
-	echo "Only trainers can create a routine".PHP_EOL;
-	return;
-      }
-
-      $routineName = $this->db->real_escape_string($routineName);
-      $query= "create table $routineName(
-	      CurDate date,
-	      Exercise varchar(20),
-	      SetNum int(2),
-	      Weight int(3),
-	      Reps int(2),
-	      BodyPart varchar(10),
-	      userID varchar(10),
-	      primary key (CurDate,Exercise,SetNum,userID),
-	      foreign key (userID) references Users(userID));";
-    
-    $results = $this->db->query($query);
-    	if ($this->db->errno > 0)
-	{
-	    echo __FILE__.":".__LINE__."DB error: ".$this->db->error.PHP_EOL;
-	}
-	echo "Routine Created".PHP_EOL;
-   }
-
-   public function deleteRoutine ($userID,$passwd,$routineName)
-   {
-      if ($this->validateUser($userID, $passwd)== false)
-      {
-	echo "invalid login".PHP_EOL;
-	return;
-      }
-      
-      if ($this ->checkUserPrivilegeLevel($userID)<1)
-      {
-	echo "Only trainers can delete routines".PHP_EOL;
-	return;
-      }
-      
-      $routineName = $this->db->real_escape_string($routineName);
-      $query = "drop table $routineName;";
-      $results = $this->db->query($query);
+	if (!$this->validateUser($userID,$oldpasswd))
+		{
+			echo "Invalid login. Update failed".PHP_EOL;
+			return false;		
+		}
+   	$userID = $this->db->real_escape_string($userID);
+	$newpasswd = $this->db->real_escape_string($this->saltPassword($newpasswd));
+	$query = "update passwds set Hashes = '$newpasswd' where userID = '$userID';";
+	$results = $this->db->query($query);	
 	if ($this->db->errno > 0)
 	{
 	    echo __FILE__.":".__LINE__."DB error: ".$this->db->error.PHP_EOL;
 	}
-	echo "Routine Deleted".PHP_EOL;
-   }
-   
-   public function trainerReport($userID,$passwd,$routineName)
-   {
-      if ($this->validateUser($userID, $passwd)== false)
-      {
-	echo "invalid login".PHP_EOL;
-	return;
-      }
-      
-      if ($this ->checkUserPrivilegeLevel($userID)<1)
-      {
-	echo "Only trainers can view all results".PHP_EOL;
-	return;
-      }
-     $routineName = $this->db->real_escape_string($routineName);
-     $query = "select * from $routineName order by userID, CurDate;";	     	
-     $results = $this->db->query($query);
-    	if ($this->db->errno > 0)
-	{
-	    echo __FILE__.":".__LINE__."DB error: ".$this->db->error.PHP_EOL;
-	}
-   }	   
-
-  public function addSet($userID,$passwd,$routineName,$date,$exercise,$set,$weight,$reps,$bodypart)
-  {
-      if ($this->validateUser($userID, $passwd)== false)
-      {
-	echo "invalid login".PHP_EOL;
-	return;
-      }
-      
-      $userID = $this->db->real_escape_string($userID);
-      $date = $this->db->real_escape_string($date);
-      $exercise = $this->db->real_escape_string($exercise);
-      $set = $this->db->real_escape_string($set);
-      $reps = $this->db->real_escape_string($reps);
-      $weight = $this->db->real_escape_string($weight);
-      $bodypart = $this->db->real_escape_string($bodypart);
-      $routineName = $this->db->real_escape_string($routineName);
-      
-      $query = "insert into $routineName (CurDate,Exercise,SetNum,Weight,Reps,BodyPart,userID) values ('$date','$exercise',$set,$weight,$reps,'$bodypart','$userID');";
-     $results = $this->db->query($query);
-    	if ($this->db->errno > 0)
-	{
-	    echo __FILE__.":".__LINE__."DB error: ".$this->db->error.PHP_EOL;
-	}
-	echo "Set added".PHP_EOL;
-  }
-  
-  public function progressReport($userID,$passwd,$routineName)
-  {
-      if ($this->validateUser($userID, $passwd)== false)
-      {
-	echo "invalid login".PHP_EOL;
-	return;
-      }
-      
-      $userID = $this->db->real_escape_string($userID);
-      $routineName = $this->db->real_escape_string($routineName);
-      
-      $query = "select all from $routineName where userID = $userID
-		order by Exercise, CurDate;";
-      $results = $this->db->query($query);
-    	if ($this->db->errno > 0)
-	{
-	    echo __FILE__.":".__LINE__."DB error: ".$this->db->error.PHP_EOL;
-	}      
-  }
+	echo "Password Updated".PHP_EOL;
+   } 	
 }
 
 
