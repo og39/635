@@ -106,8 +106,8 @@ class workoutFunc
       $userID = $this->db->real_escape_string($userID);
       $routineName = $this->db->real_escape_string($routineName);
       
-      $query = "select all from $routineName where userID = $userID
-		order by Exercise, CurDate;";
+      $query = "select * from $routineName where userID = '$userID'
+		order by CurDate, Exercise, SetNum;";
      $results = $this->db->query($query);
     	if ($this->db->errno > 0)
 	{
