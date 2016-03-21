@@ -48,11 +48,10 @@ class DBlogin
         $results = $this->db->query($query);
 	$row = $results->fetch_assoc();
 	if ($row['Hashes'] === $passwd)
-        {
-		echo "User validated".PHP_EOL;		
+        {		
 		return true;
 	}
-	echo "validation failed".PHP_EOL;
+	echo "login failed".PHP_EOL;
         return false;
    }
    
@@ -103,10 +102,8 @@ class DBlogin
 	$row = $results->fetch_assoc();
 	if ($row['accType'] === 'trainer')
         {	
-		echo "Trainer Priviliges".PHP_EOL;
 		return 1;
 	}
-	echo "User Privileges".PHP_EOL;
         return 0;	
    }
    public function updatePassword($userID,$oldpasswd,$newpasswd)
